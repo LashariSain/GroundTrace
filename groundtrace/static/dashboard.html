@@ -235,6 +235,12 @@
            VIEW 1: FINDINGS & DEEP EVIDENCE DETAIL
            ===================================================================== -->
       <section id="view-dashboard" class="flex flex-col w-full p-6 gap-4 max-w-[1720px] mx-auto" style="display:none;">
+        <div id="ov-start" class="bg-surface-container-low p-5 rounded border border-primary/50 space-y-2 text-sm" style="display:none;">
+          <h2 class="text-lg font-semibold">No data yet</h2>
+          <p class="text-on-surface-variant">GroundTrace fills this page by collecting public vulnerability and threat data. The first collection can take 10 minutes or more.</p>
+          <p class="text-on-surface-variant"><b class="text-on-surface">Docker:</b> the watcher is already collecting, so check back shortly. <b class="text-on-surface">Local:</b> run <code class="font-mono text-primary">python -m groundtrace watch --once</code>, then refresh.</p>
+          <p class="text-on-surface-variant">Malware families and most indicators need a free abuse.ch key: set <code class="font-mono text-primary">DARKFEEDS_ABUSECH_KEY</code> in <code class="font-mono text-primary">.env</code>.</p>
+        </div>
         <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3" id="ov-stats"></div>
         <div class="grid grid-cols-12 gap-4">
           <div class="col-span-12 xl:col-span-8 bg-surface-container-low p-4 rounded border border-outline-variant/30">
@@ -3248,6 +3254,7 @@
       const f = o.findings || {}, s = o.signals || {}, v = o.alert_volume || {};
       const sent = (o.alert_channels || {}).configured?.length;
       const lastRun = (s.runs || []).at(-1);
+      $("ov-start").style.display = f.total || s.total ? "none" : "";
       $("ov-stats").replaceChildren(...[
         ["CVEs tracked", f.total, `${ovNum(f.critical)} critical · ${ovNum(f.high)} high`, "findings"],
         ["In CISA KEV", f.kev, "observed exploitation", "findings", true],

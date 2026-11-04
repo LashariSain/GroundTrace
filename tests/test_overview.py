@@ -58,3 +58,25 @@ def test_hosting_needs_enough_ips_to_mean_anything(tmp_path):
 
 def test_every_mode_has_measured_rates():
     assert set(fingerprint.MEASURED_RATES) == set(fingerprint.RELIABILITY)
+
+
+def test_a_taken_port_is_reported_not_shared():
+    import pytest
+    from groundtrace.api import make_server
+    first = make_server("127.0.0.1", 0)
+    try:
+        with pytest.raises(SystemExit, match="already be running"):
+            make_server("127.0.0.1", first.server_address[1])
+    finally:
+        first.server_close()
+
+
+def test_group_count_never_starts_the_download(tmp_path, monkeypatch):
+    from groundtrace import aptdb
+    monkeypatch.setattr(aptdb, "_index_path", lambda: tmp_path / "missing.json")
+    monkeypatch.setattr(aptdb, "refresh", lambda *a, **k: pytest_fail())
+    assert aptdb.group_count() == 0
+
+
+def pytest_fail():
+    raise AssertionError("the first screen must not download the catalogue")

@@ -837,7 +837,7 @@ class Handler(BaseHTTPRequestHandler):
             "findings": self.store.stats(),
             "top_cves": self.store.query(limit=5),
             "signals": signals,
-            "threat_groups": len(aptdb._load()["groups"]),
+            "threat_groups": aptdb.group_count(),
             "indicators": {**known, "hash": hashes, "total": total,
                            "other": total - hashes - sum(known.values())},
             "precision": {m: {"precision": fingerprint.RELIABILITY[m]["precision"],
@@ -1105,6 +1105,19 @@ class Handler(BaseHTTPRequestHandler):
         return self._send(200, {"count": len(rows), "results": rows})
 
 
+class _Server(ThreadingHTTPServer):
+    # On Windows, address reuse lets two servers share a port without any error.
+    allow_reuse_address = os.name != "nt"
+
+
+def make_server(host: str, port: int) -> ThreadingHTTPServer:
+    try:
+        return _Server((host, port), Handler)
+    except OSError as e:
+        raise SystemExit(f"cannot listen on {host}:{port} ({e}). GroundTrace may already be "
+                         f"running; stop it, or choose another port with --port.") from None
+
+
 def serve(host: str = "127.0.0.1", port: int = 8080) -> None:
     api_key = os.environ.get("GROUNDTRACE_API_KEY")
     if not api_key and host not in _LOCAL_HOSTS:
@@ -1115,7 +1128,10 @@ def serve(host: str = "127.0.0.1", port: int = 8080) -> None:
     Handler.api_key = api_key
     Handler.db_path = get_config().db_path
     FindingStore(Handler.db_path).close()  # create schema up front
-    httpd = ThreadingHTTPServer((host, port), Handler)
+    from darkfeeds.config import Config as DFConfig
+    from darkfeeds.store import Store as DFStore
+    DFStore(DFConfig().db_path).close()  # readers open this file directly
+    httpd = make_server(host, port)
 
     def _warm():
         # The first APT click after a restart otherwise pays ~5 s loading the

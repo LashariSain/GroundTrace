@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/LashariSain/Groundtrace/actions/workflows/ci.yml/badge.svg)](https://github.com/LashariSain/Groundtrace/actions/workflows/ci.yml)
 [![Measured precision](https://img.shields.io/badge/attribution%20precision-72.2%25%20measured-brightgreen.svg)](#how-accurate-is-it-and-how-do-you-know)
-[![Tests](https://img.shields.io/badge/tests-256-brightgreen.svg)](#development)
+[![Tests](https://img.shields.io/badge/tests-258-brightgreen.svg)](#development)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](#quick-start)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -192,11 +192,19 @@ interface unless `GROUNDTRACE_API_KEY` is set.
 ```bash
 python -m groundtrace demo                       # offline sample, no network
 python -m groundtrace cve CVE-2021-44228         # live: NVD + CISA KEV + EPSS
+python -m groundtrace watch --once               # first data collection, can take 10+ minutes
 python -m groundtrace serve                      # home at http://127.0.0.1:8080/, dashboard at /dashboard
 ```
 
+The dashboard is empty until a collection has run. Docker runs the watcher for you;
+locally, keep `python -m groundtrace watch --interval 6` running to stay up to date.
+The first start also downloads about 130 MB of reference data in the background, so
+threat groups and family details can take a few minutes to appear.
+
 No API keys are needed to start. NVD, KEV, EPSS and RansomLook work without one; keys
-unlock more sources (below).
+unlock more sources (below). Most malware family data comes from MalwareBazaar and
+ThreatFox, so get a free [abuse.ch key](https://auth.abuse.ch/) and set
+`DARKFEEDS_ABUSECH_KEY` in `.env`.
 
 ---
 

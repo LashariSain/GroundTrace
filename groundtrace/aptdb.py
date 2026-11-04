@@ -416,6 +416,12 @@ def status_for(days_since: Optional[int]) -> str:
     return "active" if days_since <= 30 else "recent" if days_since <= 180 else "dormant"
 
 
+def group_count() -> int:
+    """Catalogue size, 0 until it exists. Never starts the ~70 MB download, so the
+    first screen doesn't wait for it on a new install."""
+    return len(_load()["groups"]) if _index_path().exists() else 0
+
+
 def summary(signals_db: str, ledger: Optional[str] = None) -> dict:
     """Map payload: every group with an origin, its targets, when it was last
     seen anywhere (sightings ledger) and which countries it hit recently."""
