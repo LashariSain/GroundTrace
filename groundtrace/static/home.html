@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GroundTrace: know which threats to deal with first</title>
+<link rel="icon" type="image/svg+xml" href="/static/brand/groundtrace-favicon.svg">
+<link rel="stylesheet" href="/static/css/fonts.css">
+<style>
+  :root { --bg:#080c12; --panel:#0f1620; --line:#1f2b39; --ink:#eef3f9; --mute:#a3b2c3; --cy:#2fd6ee; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; scroll-padding-top:84px; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/24px Inter,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  a { color:inherit; }
+  a:focus-visible { outline:2px solid var(--cy); outline-offset:2px; }
+  .top { position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--line); }
+  .top-in { display:flex; flex-wrap:wrap; align-items:center; gap:8px 28px; max-width:1240px; margin:0 auto; min-height:68px; padding:10px 24px; }
+  .brand { display:flex; align-items:center; gap:2px; font-size:20px; letter-spacing:-.01em; font-weight:600; text-decoration:none; }
+  .brand img { display:block; }
+  .links { display:flex; flex-wrap:wrap; gap:4px 22px; }
+  .links a { display:inline-flex; align-items:center; min-height:40px; color:var(--mute); font-size:14px; font-weight:500; text-decoration:none; }
+  .links a:hover { color:var(--ink); }
+  .go { display:inline-flex; align-items:center; min-height:44px; margin-left:auto; padding:0 18px; border-radius:3px; background:var(--cy); color:#04232a; font-size:14px; font-weight:600; text-decoration:none; }
+  .go:hover { background:#6be3f4; }
+  main { max-width:1240px; margin:0 auto; padding:64px 24px 72px; }
+  h1 { margin:0; max-width:900px; font-size:56px; line-height:62px; font-weight:600; letter-spacing:-.03em; }
+  h1 em { font-style:normal; color:var(--cy); }
+  .lead { margin:20px 0 24px; max-width:720px; font-size:18px; line-height:28px; color:var(--mute); }
+  .more { color:var(--cy); font-weight:600; text-decoration:none; }
+  .more:hover { text-decoration:underline; }
+  section { margin-top:72px; }
+  h2 { margin:0 0 8px; font-size:30px; line-height:38px; font-weight:600; letter-spacing:-.02em; }
+  .intro { margin:0 0 24px; max-width:720px; color:var(--mute); }
+  .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+  .card { padding:20px; background:var(--panel); border:1px solid var(--line); border-radius:4px; }
+  .card .material-symbols-outlined { color:var(--cy); }
+  .card h3 { margin:8px 0 6px; font-size:16px; line-height:24px; font-weight:600; }
+  .card p { margin:0; color:var(--mute); font-size:14px; line-height:21px; }
+  .step { font:600 13px/20px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--cy); }
+  .proofs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); background:var(--panel); border:1px solid var(--line); border-radius:4px; }
+  .proof { padding:20px 24px; border-left:1px solid var(--line); color:var(--mute); font-size:14px; line-height:21px; }
+  .proof:first-child { border-left:0; }
+  .num { color:var(--ink); font:600 34px/44px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; letter-spacing:-.03em; }
+  .num.cy { color:var(--cy); }
+  .limit { margin:14px 0 0; max-width:860px; color:var(--mute); font-size:14px; line-height:21px; }
+  .limit b { color:var(--ink); }
+  .preview { margin-top:24px; padding:16px; background:var(--panel); border:1px solid var(--line); border-radius:4px; }
+  .map svg { display:block; width:100%; height:auto; max-height:420px; }
+  .label { margin:0 0 10px; font-size:11px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:var(--mute); }
+  .note { margin:10px 0 0; font-weight:500; }
+  /* Motion: only added once JS confirms the visitor hasn't asked for less. */
+  .motion .hero > * { animation:rise .6s cubic-bezier(.2,.7,.2,1) both; }
+  .motion .hero > :nth-child(2) { animation-delay:.1s; }
+  .motion .hero > :nth-child(3) { animation-delay:.2s; }
+  .motion .reveal { opacity:0; transform:translateY(18px); transition:opacity .55s ease-out, transform .55s cubic-bezier(.2,.7,.2,1); transition-delay:var(--d,0s); }
+  .motion .reveal.in { opacity:1; transform:none; }
+  .motion .card.reveal.in { transition:opacity .55s ease-out var(--d,0s), transform .55s cubic-bezier(.2,.7,.2,1) var(--d,0s), border-color .15s; }
+  .motion .card.reveal.in.done { transition:transform .18s ease-out, border-color .15s; transition-delay:0s; }
+  .card:hover { border-color:#3a4b5e; }
+  .motion .card.in.done:hover { transform:translateY(-3px); }
+  .motion .more span { display:inline-block; animation:nudge 1.8s ease-in-out 1s 3; }
+  .go { transition:background .15s, transform .15s; }
+  .motion .go:hover { transform:translateY(-1px); }
+  .links a { transition:color .15s; }
+  .map path { transition:fill .5s ease-out; }
+  @keyframes rise { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+  @keyframes nudge { 50% { transform:translateY(4px); } }
+  @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .go, .links a, .map path { transition:none; } }
+  @media (max-width:900px) {
+    .grid { grid-template-columns:minmax(0,1fr); }
+    .proofs { grid-template-columns:minmax(0,1fr); }
+    .proof { border-left:0; border-top:1px solid var(--line); }
+    .proof:first-child { border-top:0; }
+  }
+  @media (max-width:760px) {
+    main { padding-top:40px; }
+    section { margin-top:52px; }
+    h1 { font-size:36px; line-height:42px; }
+    .go { margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <a class="brand" href="/" aria-label="GroundTrace home"><img src="/static/brand/groundtrace-mark-dark-bg.svg" width="28" height="28" alt="">roundtrace</a>
+  <nav class="links" aria-label="On this page">
+    <a href="#what">What it does</a><a href="#who">Who it's for</a><a href="#how">How it works</a><a href="#accuracy">Accuracy</a>
+  </nav>
+  <a class="go" href="/dashboard">Open dashboard</a>
+</div></header>
+<main>
+  <div class="hero">
+  <h1>Know which vulnerabilities and threats to <em>deal with first.</em></h1>
+  <p class="lead">GroundTrace is a self-hosted threat-intelligence tool. It collects public vulnerability and threat data, ranks it by what attackers are really doing, and tells you plainly when the evidence isn't good enough.</p>
+  <a class="more" href="#what">See what it does <span aria-hidden="true">↓</span></a>
+  </div>
+
+  <section id="what" aria-labelledby="what-h">
+    <h2 id="what-h">The questions it answers</h2>
+    <p class="intro">Thousands of vulnerabilities are published, and a severity score alone doesn't say which ones are being attacked. GroundTrace brings the evidence into one place.</p>
+    <div class="grid">
+      <article class="card"><span class="material-symbols-outlined">shield</span><h3>What should I patch first?</h3><p>Ranks CVEs using severity, predicted exploitation and CISA's list of known exploited vulnerabilities, and shows how each score was calculated.</p></article>
+      <article class="card"><span class="material-symbols-outlined">search</span><h3>Is this IP, domain or hash known?</h3><p>Look up a suspicious indicator to see what has been recorded about it and which known group's habits it resembles, if any.</p></article>
+      <article class="card"><span class="material-symbols-outlined">radar</span><h3>What is gathering attention?</h3><p>Ranks CVEs not yet on CISA's list by rising exploit predictions, reporting and public exploit code. It's a ranking, not a forecast.</p></article>
+      <article class="card"><span class="material-symbols-outlined">public</span><h3>Where is attack infrastructure hosted?</h3><p>Maps malicious infrastructure by country and provider, so you can see where to block. It shows hosting, not who is behind an attack.</p></article>
+      <article class="card"><span class="material-symbols-outlined">bug_report</span><h3>Is exploit code public?</h3><p>Lists public exploits for a CVE and flags repositories that look like traps. Links only: nothing is downloaded or run.</p></article>
+      <article class="card"><span class="material-symbols-outlined">notifications</span><h3>What changed since I last looked?</h3><p>A background watcher raises alerts for new known-exploited CVEs and for matches on the products you choose to watch.</p></article>
+    </div>
+  </section>
+
+  <section id="who" aria-labelledby="who-h">
+    <h2 id="who-h">Who it's for</h2>
+    <p class="intro">People who need to make security decisions from evidence, without paying for or sending data to a hosted platform.</p>
+    <div class="grid">
+      <article class="card"><h3>Security operations analysts</h3><p>Decide which vulnerabilities and alerts to act on, and show the reasoning behind each one.</p></article>
+      <article class="card"><h3>Threat-intelligence analysts</h3><p>Investigate indicators, hosting and malware links, with sources and limits kept in view.</p></article>
+      <article class="card"><h3>Small security and IT teams</h3><p>Watch the products you run and get a short, ranked list of what to fix.</p></article>
+    </div>
+  </section>
+
+  <section id="how" aria-labelledby="how-h">
+    <h2 id="how-h">How it works</h2>
+    <p class="intro">It runs on your own machine, and your data stays local.</p>
+    <div class="grid">
+      <article class="card"><div class="step">1 · Collect</div><h3>Gather public data</h3><p>Pulls vulnerability records, exploitation data and threat feeds into a local database.</p></article>
+      <article class="card"><div class="step">2 · Connect</div><h3>Rank and link it</h3><p>Scores each CVE and links it to public exploits, threat reports and documented group activity.</p></article>
+      <article class="card"><div class="step">3 · Act</div><h3>Open the dashboard</h3><p>See what matters most, look up indicators and add the products you run to your watchlist.</p></article>
+    </div>
+    <div class="preview">
+      <p class="label" id="map-title">Example: malicious infrastructure hosting</p>
+      <div class="map" id="map"></div>
+      <p class="note">Where infrastructure is hosted. Not operator location.</p>
+    </div>
+  </section>
+
+  <section id="accuracy" aria-labelledby="accuracy-h">
+    <h2 id="accuracy-h">It tells you how often it's right</h2>
+    <p class="intro">When it says an indicator resembles a known group, that is a lead, not proof of who did it. If the evidence is too thin, it declines to answer. These figures come from your installed data.</p>
+    <div class="proofs" aria-label="Measured results">
+      <div class="proof"><div class="num cy" id="p-prec">–</div>measured precision, strict mode</div>
+      <div class="proof"><div class="num" id="p-wrong">–</div>wrong-group rate</div>
+      <div class="proof"><div class="num" id="p-abst">–</div>of the time it declines to name a group</div>
+      <div class="proof"><div class="num" id="p-sig">–</div><span id="p-sig-sub">signals tracked</span></div>
+    </div>
+    <p class="limit"><b>What this doesn't cover:</b> these tests use indicators already tied to a known group. They don't yet measure false matches on harmless domains, so verify any lead before acting on it.</p>
+  </section>
+</main>
+<script>
+  "use strict";
+  // Links shared before the home page existed pointed at /#CVE-...
+  if (/^#CVE-\d{4}-\d{4,}$/i.test(location.hash)) location.replace("/dashboard" + location.hash);
+
+  const $ = (id) => document.getElementById(id);
+  const pct = (x) => (x * 100).toFixed(1) + "%";
+  let key = "";
+  try { key = sessionStorage.getItem("groundtrace-key") || ""; } catch {}
+  const get = (p) => fetch(p, { headers: { "X-API-Key": key } }).then((r) => (r.ok ? r.json() : Promise.reject(r.status)));
+
+  const motion = !matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window;
+
+  // Counts start when the numbers scroll into view, and end on the exact value.
+  function countUp(node, target, fmt) {
+    if (!motion) { node.textContent = fmt(target); return; }
+    node.textContent = fmt(0);
+    const run = () => {
+      const t0 = performance.now();
+      const tick = (t) => {
+        const k = Math.min(1, (t - t0) / 900);
+        node.textContent = k < 1 ? fmt(target * (1 - Math.pow(1 - k, 3))) : fmt(target);
+        if (k < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); run(); } });
+    io.observe(node);
+  }
+
+  if (motion) {
+    document.documentElement.classList.add("motion");
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("in");
+      setTimeout(() => e.target.classList.add("done"), 800);
+      io.unobserve(e.target);
+    }), { threshold: 0.12 });
+    document.querySelectorAll("section h2, .intro, .card, .proofs, .limit, .preview").forEach((n) => {
+      n.classList.add("reveal");
+      const i = [...n.parentElement.children].indexOf(n);
+      if (n.classList.contains("card")) n.style.setProperty("--d", `${(i % 3) * 0.08}s`);
+      io.observe(n);
+    });
+  }
+
+  function heat(v, max) {
+    if (!v) return "#1e293b";
+    const t = Math.sqrt(v / max);
+    const stops = [[0, [74, 42, 46]], [0.45, [184, 50, 58]], [0.75, [255, 90, 60]], [1, [255, 192, 74]]];
+    for (let i = 1; i < stops.length; i++) {
+      if (t <= stops[i][0]) {
+        const [a, ca] = stops[i - 1], [b, cb] = stops[i], k = (t - a) / (b - a);
+        return `rgb(${ca.map((c, j) => Math.round(c + (cb[j] - c) * k)).join(",")})`;
+      }
+    }
+    return "rgb(255,192,74)";
+  }
+
+  // Without the server's API key the page stays usable; numbers just stay blank.
+  get("/overview").then((o) => {
+    const st = o.precision.strict;
+    countUp($("p-prec"), st.precision * 100, (v) => v.toFixed(1) + "%");
+    countUp($("p-wrong"), st.wrong_group * 100, (v) => v.toFixed(1) + "%");
+    countUp($("p-abst"), st.abstains * 100, (v) => v.toFixed(1) + "%");
+    countUp($("p-sig"), Number(o.signals.total), (v) => Math.round(v).toLocaleString("en-US"));
+    $("p-sig-sub").textContent = `signals, ${Number(o.findings.total).toLocaleString("en-US")} CVEs tracked`;
+  }).catch(() => {});
+
+  Promise.all([fetch("/static/world.svg").then((r) => r.text()), get("/geo").catch(() => null)]).then(([svg, geo]) => {
+    $("map").innerHTML = svg;
+    const s = $("map").querySelector("svg");
+    if (s) { s.removeAttribute("width"); s.removeAttribute("height"); }
+    $("map").querySelectorAll("path[id]").forEach((p) => {
+      p.setAttribute("fill", heat(geo ? geo.infra[p.id.toUpperCase()] || 0 : 0, geo ? geo.max || 1 : 1));
+      p.setAttribute("stroke", "#05080d");
+      p.setAttribute("stroke-width", "0.4");
+    });
+    if (geo) $("map-title").textContent = `Example: malicious infrastructure hosting · ${Number(geo.geolocated_signals).toLocaleString("en-US")} geolocated signals`;
+  }).catch(() => {});
+</script>
+</body>
+</html>

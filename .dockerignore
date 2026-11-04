@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+*.db
+*.db-wal
+*.db-shm
+**/__pycache__
+*.pyc
+robin/
+.git/
+.vscode/
+*.md
+!README.md

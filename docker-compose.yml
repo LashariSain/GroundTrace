@@ -1,0 +1,64 @@
+# GroundTrace: API/dashboard + scheduled watcher sharing one data volume.
+#
+#   cp .env.example .env      # then fill in at least GROUNDTRACE_API_KEY
+#   docker compose up -d --build
+#   open http://127.0.0.1:8080/
+#
+# The port is published on 127.0.0.1 only. To expose it on your network,
+# change it to "8080:8080" — the API key is enforced either way.
+services:
+  api:
+    build: .
+    image: groundtrace:latest
+    command: ["python", "-m", "groundtrace", "serve", "--host", "0.0.0.0", "--port", "8080"]
+    env_file: .env
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - groundtrace-data:/data
+    restart: unless-stopped
+
+  watcher:
+    image: groundtrace:latest
+    depends_on:
+      - api            # ensures the image is built first
+    command: ["python", "-m", "groundtrace", "watch", "--interval", "6"]
+    env_file: .env
+    volumes:
+      - groundtrace-data:/data
+    healthcheck:
+      disable: true    # no HTTP server in this role
+    restart: unless-stopped
+
+  # Tor SOCKS5 proxy — only the crawler talks to it, never published on the
+  # host. Passive OSINT only: the crawler fetches Ahmia (a Tor search engine)
+  # read-only, never logs in or posts.
+  tor:
+    profiles: ["crawler"]
+    image: dperson/torproxy:latest  # third-party image: review it before enabling
+    restart: unless-stopped
+
+  # .onion crawler, built with the optional Tor deps (requests[socks], bs4).
+  # Off by default; start it with `docker compose --profile crawler up`.
+  # Runs one crawl per loop, then sleeps; `docker compose run crawler` for
+  # a one-off run instead.
+  crawler:
+    profiles: ["crawler"]
+    build:
+      context: .
+      args:
+        WITH_CRAWLER: "1"
+    image: groundtrace-crawler:latest
+    depends_on:
+      - tor
+    entrypoint: ["sh", "-c", "while true; do python -m darkfeeds crawl; sleep 21600; done"]
+    environment:
+      DARKFEEDS_TOR_HOST: tor
+      DARKFEEDS_TOR_PORT: "9050"
+    env_file: .env
+    volumes:
+      - groundtrace-data:/data
+    restart: unless-stopped
+
+volumes:
+  groundtrace-data:

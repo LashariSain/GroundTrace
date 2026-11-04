@@ -1,0 +1,41 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Local data
+*.db
+*.db-wal
+*.db-shm
+bench*.json
+recent*.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Logs
+*.log
+
+# Reference repo (has its own git history)
+robin/
+
+# Local editor tooling
+.claude/
+
+# Generated report output (e.g. `groundtrace cve ... --out advisory.md`)
+/advisory.md
+
+# Design-tool exports (Stitch); the shipped UI is groundtrace/static/dashboard.html
+/stitch_*
+
+# Personal work, not part of GroundTrace
+docs/reports/
+
+# Design-tool working files; the shipped UI is groundtrace/static/
+design/
+
+# Internal planning notes
+docs/dev/

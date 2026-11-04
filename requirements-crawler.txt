@@ -1,0 +1,4 @@
+# Optional: only needed for `python -m darkfeeds crawl` (Tor/.onion crawling).
+# Everything else in groundtrace/darkfeeds is standard-library only.
+requests[socks]>=2.31
+beautifulsoup4>=4.12

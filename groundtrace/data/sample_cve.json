@@ -1,0 +1,24 @@
+{
+  "cve_id": "CVE-2021-44228",
+  "title": "Apache Log4j2 JNDI Remote Code Execution (Log4Shell)",
+  "description": "Apache Log4j2 <=2.14.1 JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints. An attacker who can control log messages or log message parameters can execute arbitrary code loaded from LDAP servers when message lookup substitution is enabled. This was actively exploited in the wild before a patch was widely deployed, and proof-of-concept exploit code was published on GitHub and ExploitDB within hours of disclosure.",
+  "cwe_ids": ["CWE-502", "CWE-917", "CWE-20"],
+  "affected": ["pkg:maven/org.apache.logging.log4j/log4j-core@<2.15.0"],
+  "published": "2021-12-10",
+  "cvss": 10.0,
+  "cvss_severity": "CRITICAL",
+  "epss": 0.975,
+  "in_kev": true,
+  "disclosure_date": "2021-12-09",
+  "patch_date": "2021-12-10",
+  "fixed_version": "2.15.0 (2.17.1 recommended)",
+  "upgrade_path": "Upgrade log4j-core to >=2.17.1",
+  "workaround": "Set log4j2.formatMsgNoLookups=true or remove JndiLookup class",
+  "root_cause": "Untrusted log data was passed to a JNDI lookup that resolved and loaded remote code — untrusted input treated as a trusted resource locator.",
+  "references": [
+    "https://logging.apache.org/log4j/2.x/security.html",
+    "https://www.exploit-db.com/exploits/50592",
+    "https://github.com/example/log4shell-poc",
+    "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
+  ]
+}
